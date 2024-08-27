@@ -1,6 +1,7 @@
 import sys
 import requests
-from javInfo_config import *
+from javInfo_base import *
+from nfo import *
 from lxml import etree
 
 
@@ -40,7 +41,7 @@ def airavSerch(fileinfo):
     lenth_info_group = len(info_group)
 
     # 获取信息
-    javdata = JaveData()
+    javnfo = JavNfo()
 
     fanhao = info_group[0].xpath('./li[contains(text(), "番号")]/span/text()')
     description = info_class[0].xpath('./p[@class="my-3"]/text()')
@@ -53,12 +54,6 @@ def airavSerch(fileinfo):
     subresponse.close()
 
     # 组装javdata
-    javdata.add_data('folder_path', fileinfo['folder_path'])
-    javdata.add_data('file_name', fileinfo['file_name'])
-    javdata.add_data('num', fanhao)
-    javdata.add_data('plot', description)
-    javdata.add_data('tag', label)
-    javdata.add_data('changshang', changshang)
 
     return javdata.data
 

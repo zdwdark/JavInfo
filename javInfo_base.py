@@ -1,5 +1,6 @@
 import json
 import os
+import re
 import requests
 from PIL import Image
 from io import BytesIO
@@ -32,21 +33,6 @@ class JavInfoConfig:
             json.dump(self.config_data, file)
 
 
-class JaveData:
-
-    def __init__(self):
-        self.data = {}  # 存储jav信息
-
-    def get_data(self, key):
-        if key in self.data:
-            return self.data[key]
-        else:
-            return None
-
-    def add_data(self, key, value):
-        self.data[key] = value
-
-
 def save_pic(pic_url, pic_name, save_path):
     if not os.path.exists(save_path):
         os.makedirs(save_path)
@@ -67,6 +53,25 @@ def save_pic(pic_url, pic_name, save_path):
         print(f"图片已保存到 {full_path}")
     else:
         print(f"图片下载失败，状态码：{response.status_code}")
+
+
+def check_create_folder(folder_path):
+    if not os.path.exists(folder_path):
+        # 如果不存在，则创建文件夹
+        os.makedirs(folder_path)
+        print(f"文件夹 '{folder_path}' 已创建。")
+    else:
+        print(f"文件夹 '{folder_path}' 已存在。")
+
+
+def extract_number_from_text(text, i):
+    # 使用正则表达式匹配数字
+    numbers = re.findall(r'\d+\.?\d*', text)
+    if len(numbers):
+        # 将匹配到的字符串转换为浮点数
+        return numbers[i]
+    else:
+        return None
 
 
 """

@@ -1,4 +1,4 @@
-from javInfo_config import JavInfoConfig
+from javInfo_base import JavInfoConfig
 from get_vedio_name import *
 from serch_javdb import *
 from nfo import *
@@ -14,10 +14,9 @@ if __name__ == '__main__':
 
     for fileinfo in file_info:
         print(fileinfo)
-        javdata = javdbSerch(fileinfo)
-        print(javdata)
-        if javdata:
-            xml_element = create_movie_xml(javdata)
+        javnfo = javdbSerch(fileinfo)
+        if javnfo:
+            xml_element = javnfo.create_nfo()
             xml_str = etree.tostring(
                 xml_element, pretty_print=True, encoding='utf-8').decode('utf-8')
             print(xml_str)

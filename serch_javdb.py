@@ -1,7 +1,8 @@
 import sys
 import requests
-from javInfo_config import *
+from javInfo_base import *
 from lxml import etree
+from nfo import *
 
 
 def javdbSerch(fileinfo):
@@ -9,7 +10,7 @@ def javdbSerch(fileinfo):
     # 初始话参数
     # file_name = 'SSIS-903'
     file_name = fileinfo['file_name']
-    pic_folder = f'D:/Python/adata/{file_name}'
+    data_folder = f'D:/Python/adata/{file_name}'
     domin = 'https://javdb.com'
     url = 'https://javdb.com/search'
     headers = {
@@ -51,7 +52,9 @@ def javdbSerch(fileinfo):
     magnets_content_html = sub_tree.xpath('//div[@class="magnet-links"]')[0]
 
     # 获取title
-    javdata = JaveData()
+    javnfo = JavNfo()
+    check_create_folder(data_folder)
+
     fanhao = title_html.xpath('./strong/text()')[0]
     print(fanhao)
     current_title = title_html.xpath(
@@ -62,10 +65,10 @@ def javdbSerch(fileinfo):
 
     # 获取封面路径并保存
 
-    cover_url = cover_html.xpath('./a/img/@src')[0]
-    print(cover_url)
-    cover_name = file_name + '.jpg'
-    save_pic(cover_url, cover_name, pic_folder)
+    # cover_url = cover_html.xpath('./a/img/@src')[0]
+    # print(cover_url)
+    # cover_name = file_name + '.jpg'
+    # save_pic(cover_url, cover_name, data_folder)
 
     # 获取nfo信息
 
@@ -74,16 +77,20 @@ def javdbSerch(fileinfo):
     print(riqi)
     shichang = panel_html.xpath(
         './div[./strong[contains(text(), "時長")]]/span/text()')[0]
-    print(shichang)
+    shichang_num = extract_number_from_text(shichang, 0)
+    print(shichang_num)
     daoyan = panel_html.xpath(
         './div[./strong[contains(text(), "導演")]]/span/a/text()')
     print(daoyan)
     pianshang = panel_html.xpath(
         './div[./strong[contains(text(), "片商")]]/span/a/text()')[0]
     print(pianshang)
-    pingfeng = panel_html.xpath(
+    pingfen = panel_html.xpath(
         './div[./strong[contains(text(), "評分")]]/span/text()')[0]
-    print(pingfeng)
+    pingfen_num = extract_number_from_text(pingfen, 0)
+    print(pingfen_num)
+    vote_num = extract_number_from_text(pingfen, 1)
+    print(vote_num)
     leibie = panel_html.xpath(
         './div[./strong[contains(text(), "類別")]]/span/a/text()')
     print(leibie)
@@ -92,25 +99,40 @@ def javdbSerch(fileinfo):
     print(yanyuan)
 
     # 组装javdata
-    javdata.add_data('folder_path', fileinfo['folder_path'])
-    javdata.add_data('file_name', fileinfo['file_name'])
-    javdata.add_data('num', fanhao)
-    javdata.add_data('title', current_title)
-    javdata.add_data('originaltitle', origin_title)
-    javdata.add_data('releasedate', riqi)
-    javdata.add_data('release', riqi)
-    javdata.add_data('tagline', '发行日期 '+riqi)
-    javdata.add_data('tag', leibie)
-    javdata.add_data('actor', yanyuan)
-    javdata.add_data('tag_changshang', pianshang)
+    javnfo.set_nfo_dict('folder_path', fileinfo['folder_path'])
+    javnfo.set_nfo_dict('file_name', fileinfo['file_name'])
+
+    javnfo.set_nfo_dict('num', fanhao)
+    javnfo.set_nfo_dict('title', current_title)
+    javnfo.set_nfo_dict('originaltitle', origin_title)
+
+    javnfo.set_nfo_dict('releasedate', riqi)
+    javnfo.set_nfo_dict('release', riqi)
+    javnfo.set_nfo_dict('premiered', riqi)
+    javnfo.set_nfo_dict('tagline', '发行日期 '+riqi)
+
+    javnfo.set_nfo_dict('rating', pingfen_num)
+    javnfo.set_nfo_dict('votes', vote_num)
+    javnfo.set_nfo_dict('runtime', shichang_num)
+
+    javnfo.set_nfo_dict('actor', yanyuan)
+    javnfo.set_nfo_dict('director', daoyan)
+
+    javnfo.set_nfo_dict('studio', pianshang)
+    javnfo.set_nfo_dict('maker', pianshang)
+    javnfo.set_nfo_dict('publisher', pianshang)
+    javnfo.set_nfo_dict('label', pianshang)
+
+    javnfo.set_nfo_dict('tag', leibie)
+    javnfo.set_nfo_dict('genre', leibie)
 
     # 获取预览图片
-    preview_img_urls = images_html.xpath(
-        './a[@class="tile-item"]/@href')
-    print(preview_img_urls)
-    for preview_img_url in preview_img_urls:
-        preview_img_name = preview_img_url.split('/')[-1]
-        save_pic(preview_img_url, preview_img_name, pic_folder)
+    # preview_img_urls = images_html.xpath(
+    #     './a[@class="tile-item"]/@href')
+    # print(preview_img_urls)
+    # for preview_img_url in preview_img_urls:
+    #     preview_img_name = preview_img_url.split('/')[-1]
+    #     save_pic(preview_img_url, preview_img_name, data_folder)
 
     # 获取磁链
     magnets_content = magnets_content_html.xpath(
@@ -128,7 +150,7 @@ def javdbSerch(fileinfo):
 
     print(magnets)
 
-    magnet_path = pic_folder + '/' + file_name + '.magnets.txt'
+    magnet_path = data_folder + '/' + file_name + '-magnets.txt'
     with open(magnet_path, 'w', encoding='utf-8') as file:
         # 遍历列表中的每个字典
         for magnet in magnets:
@@ -139,7 +161,7 @@ def javdbSerch(fileinfo):
             # 在每个字典之后添加一个空行以分隔不同的字典
             file.write("\n")
 
-    return javdata.data
+    return javnfo
 
 
 if __name__ == '__main__':
